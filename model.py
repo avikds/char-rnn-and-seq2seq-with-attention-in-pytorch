@@ -628,8 +628,49 @@ def attention_map(model, sentence, src_vocab, tgt_vocab, max_len=10):
 
         return translation, weights
 
-# Step 17 - compare_translators (not yet solved)
-# TODO: implement
+# Step 17 - compare_translators
+def compare_translators(pairs, epochs=3, seed=42):
+    # Build source and target vocabularies from the same sentence pairs.
+    en = WordVocab([english for english, _ in pairs])
+    es = WordVocab([spanish for _, spanish in pairs])
+
+    # Encode the same data for both translators.
+    src, tgt_in, tgt_out = encode_pairs(pairs, en, es)
+
+    # Construct and train the plain Seq2Seq translator.
+    torch.manual_seed(seed)
+    plain_model = Seq2Seq(
+        Encoder(len(en)),
+        Decoder(len(es)),
+    )
+    plain_history = train_translator(
+        plain_model,
+        src,
+        tgt_in,
+        tgt_out,
+        epochs=epochs,
+        seed=seed,
+    )
+
+    # Construct and train the attention Seq2Seq translator.
+    torch.manual_seed(seed)
+    attention_model = Seq2Seq(
+        Encoder(len(en)),
+        AttnDecoder(len(es)),
+    )
+    attention_history = train_translator(
+        attention_model,
+        src,
+        tgt_in,
+        tgt_out,
+        epochs=epochs,
+        seed=seed,
+    )
+
+    return {
+        "plain": plain_history["val_acc"][-1],
+        "attention": attention_history["val_acc"][-1],
+    }
 
 # Step 18 - save_translator (not yet solved)
 # TODO: implement
