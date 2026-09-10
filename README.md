@@ -29,6 +29,22 @@ python scaffold.py
 - [x] **17.** compare_translators
 - [x] **18.** save_translator
 
----
+## Results
 
-Built on Deep-ML.
+```
+char-rnn on 150,000 characters: loss 2.91 -> 2.24 (uniform guess = 4.17)
+  T=0.2: ROMEO:IUS: / The sore the the the sore the the sore the sore and and the sore the the th
+  T=0.6: ROMEO: / Carest here the cave, the the on that shos with and freear the cemot thelion, a
+  T=1.2: ROMEO: / Caw;sul; / Menter uagl,', pave you af cemans win's, vrave arvic heer, / Hrail. O, a
+
+translator masked val accuracy: plain 0.497   attention 0.573
+  I am happy.              -> plain: estoy <unk>                  attention: estoy feliz
+  Thank you very much.     -> plain: gracias por <unk>            attention: gracias gracias
+  Where is my book?        -> plain: dónde está mi oficina        attention: dónde es mi libro
+
+attention weights (rows: output words, columns: thank you very much)
+  gracias    0.01 0.53 0.47 0.00
+  gracias    0.00 0.00 1.00 0.00
+
+reloaded translator: 'good morning' -> bueno bien bueno
+```
