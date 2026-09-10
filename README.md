@@ -25,7 +25,7 @@ python scaffold.py
 - [x] **13.** translate
 - [x] **14.** LuongAttention
 - [x] **15.** AttnDecoder
-- [ ] **16.** attention_map
+- [x] **16.** attention_map
 - [ ] **17.** compare_translators
 - [ ] **18.** save_translator
 

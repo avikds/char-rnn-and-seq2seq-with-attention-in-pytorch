@@ -559,8 +559,74 @@ class AttnDecoder(nn.Module):
 
         return logits, state
 
-# Step 16 - attention_map (not yet solved)
-# TODO: implement
+# Step 16 - attention_map
+def attention_map(model, sentence, src_vocab, tgt_vocab, max_len=10):
+    model.eval()
+
+    with torch.no_grad():
+        # Clean and encode the source sentence without special tokens.
+        sentence = clean_text(sentence)
+        src_ids = src_vocab.encode(sentence, max_len)
+
+        src = torch.tensor(
+            [src_ids],
+            dtype=torch.int64,
+        )
+
+        # Identify the real source-token positions, excluding padding.
+        src_mask = src != 0
+        n_source_words = int(src_mask[0].sum().item())
+
+        # Run the encoder once.
+        enc_outputs, state = model.encoder(src)
+
+        # Start greedy decoding with <sos>.
+        tok = torch.tensor(
+            [[tgt_vocab.stoi["<sos>"]]],
+            dtype=torch.int64,
+        )
+
+        generated = []
+        alignment = []
+
+        for _ in range(max_len):
+            logits, state = model.decoder(
+                tok,
+                state,
+                enc_outputs,
+                src_mask,
+            )
+
+            # Greedily select the next target token.
+            next_id = logits[:, -1, :].argmax(dim=-1)
+            token_id = next_id.item()
+
+            # Stop before recording an attention row for <eos>.
+            if token_id == tgt_vocab.stoi["<eos>"]:
+                break
+
+            generated.append(token_id)
+
+            # The decoder processed one target token, so the final attention
+            # weights are stored at [0, 0] for this single-token call.
+            step_weights = model.decoder.last_weights[0, 0]
+
+            # Keep only weights corresponding to real source words.
+            step_weights = step_weights[:n_source_words].cpu().numpy()
+            alignment.append(step_weights)
+
+            # Feed the predicted token into the next decoder step.
+            tok = next_id.unsqueeze(1)
+
+        translation = tgt_vocab.decode(generated)
+
+        # Always return a float32 NumPy array with shape
+        # (n_output_words, n_source_words).
+        weights = np.asarray(alignment, dtype=np.float32).reshape(
+            len(generated), n_source_words
+        )
+
+        return translation, weights
 
 # Step 17 - compare_translators (not yet solved)
 # TODO: implement
