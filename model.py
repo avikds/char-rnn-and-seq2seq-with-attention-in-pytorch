@@ -445,8 +445,51 @@ def train_translator(
 
     return history
 
-# Step 13 - translate (not yet solved)
-# TODO: implement
+# Step 13 - translate
+def translate(model, sentence, src_vocab, tgt_vocab, max_len=10):
+    model.eval()
+
+    with torch.no_grad():
+        # Clean and encode the source sentence without special tokens.
+        sentence = clean_text(sentence)
+        src = torch.tensor(
+            [src_vocab.encode(sentence, max_len)],
+            dtype=torch.int64,
+        )
+
+        # Run the encoder once.
+        enc_outputs, state = model.encoder(src)
+
+        # Start decoding with <sos>.
+        tok = torch.tensor(
+            [[tgt_vocab.stoi["<sos>"]]],
+            dtype=torch.int64,
+        )
+
+        generated = []
+
+        for _ in range(max_len):
+            logits, state = model.decoder(
+                tok,
+                state,
+                enc_outputs,
+                src != 0,
+            )
+
+            # Greedily select the highest-probability token.
+            next_id = logits[:, -1, :].argmax(dim=-1)
+            token_id = next_id.item()
+
+            # Stop when <eos> is produced.
+            if token_id == tgt_vocab.stoi["<eos>"]:
+                break
+
+            generated.append(token_id)
+
+            # Feed the predicted token back into the decoder.
+            tok = next_id.unsqueeze(1)
+
+        return tgt_vocab.decode(generated)
 
 # Step 14 - LuongAttention (not yet solved)
 # TODO: implement

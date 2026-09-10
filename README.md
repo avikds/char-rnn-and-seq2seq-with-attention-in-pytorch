@@ -22,7 +22,7 @@ python scaffold.py
 - [x] **10.** Encoder
 - [x] **11.** Seq2Seq
 - [x] **12.** train_translator
-- [ ] **13.** translate
+- [x] **13.** translate
 - [ ] **14.** LuongAttention
 - [ ] **15.** AttnDecoder
 - [ ] **16.** attention_map
