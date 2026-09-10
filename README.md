@@ -16,7 +16,7 @@ python scaffold.py
 - [x] **4.** CharRNN
 - [x] **5.** train_char_rnn
 - [x] **6.** generate
-- [ ] **7.** load_spa_eng
+- [x] **7.** load_spa_eng
 - [ ] **8.** WordVocab
 - [ ] **9.** encode_pairs
 - [ ] **10.** Encoder

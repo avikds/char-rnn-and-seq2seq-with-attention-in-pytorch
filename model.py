@@ -159,8 +159,63 @@ def generate(model, vocab, prefix, n_chars, temperature=1.0, seed=0):
 
         return prefix + vocab.decode(generated)
 
-# Step 7 - load_spa_eng (not yet solved)
-# TODO: implement
+# Step 7 - load_spa_eng
+import os
+import re
+import tempfile
+import urllib.request
+import zipfile
+import numpy as np
+
+def clean_text(s):
+    # Lowercase the text.
+    s = s.lower()
+
+    # Replace every character that is not a word character,
+    # whitespace, or apostrophe with a space.
+    s = re.sub(r"[^\w\s']", " ", s)
+
+    # Collapse consecutive whitespace and strip leading/trailing spaces.
+    return " ".join(s.split())
+
+def load_spa_eng(n_pairs=20000, max_words=8, seed=42):
+    url = "https://storage.googleapis.com/download.tensorflow.org/data/spa-eng.zip"
+    temp_dir = tempfile.gettempdir()
+    zip_path = os.path.join(temp_dir, "spa-eng.zip")
+
+    # Download the dataset only if it is not already cached.
+    if not os.path.isfile(zip_path):
+        urllib.request.urlretrieve(url, zip_path)
+
+    pairs = []
+
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        with zf.open("spa-eng/spa.txt") as f:
+            for line in f:
+                line = line.decode("utf-8").strip()
+
+                if not line:
+                    continue
+
+                parts = line.split("\t")
+                if len(parts) != 2:
+                    continue
+
+                english = clean_text(parts[0])
+                spanish = clean_text(parts[1])
+
+                # Keep only pairs whose two sides satisfy the word limit.
+                if (
+                    len(english.split()) <= max_words
+                    and len(spanish.split()) <= max_words
+                ):
+                    pairs.append((english, spanish))
+
+    # Shuffle deterministically and return the requested number of pairs.
+    rng = np.random.default_rng(seed)
+    indices = rng.permutation(len(pairs))
+
+    return [pairs[i] for i in indices[:n_pairs]]
 
 # Step 8 - WordVocab (not yet solved)
 # TODO: implement
