@@ -281,8 +281,27 @@ class WordVocab:
 
         return " ".join(words)
 
-# Step 9 - encode_pairs (not yet solved)
-# TODO: implement
+# Step 9 - encode_pairs
+def encode_pairs(pairs, src_vocab, tgt_vocab, max_len=10):
+    src = []
+    tgt_in = []
+    tgt_out = []
+
+    for english, spanish in pairs:
+        # Source: English words, without special tokens.
+        src.append(src_vocab.encode(english, max_len))
+
+        # Target input: <sos> followed by Spanish words.
+        tgt_in.append(tgt_vocab.encode(spanish, max_len, sos=True))
+
+        # Target output: Spanish words followed by <eos>.
+        tgt_out.append(tgt_vocab.encode(spanish, max_len, eos=True))
+
+    return (
+        torch.tensor(src, dtype=torch.int64),
+        torch.tensor(tgt_in, dtype=torch.int64),
+        torch.tensor(tgt_out, dtype=torch.int64),
+    )
 
 # Step 10 - Encoder (not yet solved)
 # TODO: implement
