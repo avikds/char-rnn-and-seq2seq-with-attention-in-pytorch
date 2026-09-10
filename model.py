@@ -672,6 +672,59 @@ def compare_translators(pairs, epochs=3, seed=42):
         "attention": attention_history["val_acc"][-1],
     }
 
-# Step 18 - save_translator (not yet solved)
-# TODO: implement
+# Step 18 - save_translator
+def save_translator(model, src_vocab, tgt_vocab, config, path):
+    checkpoint = {
+        "state_dict": model.state_dict(),
+        "src_itos": src_vocab.itos,
+        "tgt_itos": tgt_vocab.itos,
+        "config": config,
+    }
+
+    torch.save(checkpoint, path)
+
+def load_translator(path):
+    checkpoint = torch.load(path, map_location="cpu")
+
+    src_itos = checkpoint["src_itos"]
+    tgt_itos = checkpoint["tgt_itos"]
+    config = checkpoint["config"]
+
+    # Rebuild the source vocabulary from its saved index-to-word list.
+    src_vocab = WordVocab([])
+    src_vocab.itos = src_itos
+    src_vocab.stoi = {word: i for i, word in enumerate(src_itos)}
+
+    # Rebuild the target vocabulary from its saved index-to-word list.
+    tgt_vocab = WordVocab([])
+    tgt_vocab.itos = tgt_itos
+    tgt_vocab.stoi = {word: i for i, word in enumerate(tgt_itos)}
+
+    embed = config["embed"]
+    hidden = config["hidden"]
+
+    encoder = Encoder(
+        len(src_vocab),
+        embed=embed,
+        hidden=hidden,
+    )
+
+    if config["attention"]:
+        decoder = AttnDecoder(
+            len(tgt_vocab),
+            embed=embed,
+            hidden=hidden,
+        )
+    else:
+        decoder = Decoder(
+            len(tgt_vocab),
+            embed=embed,
+            hidden=hidden,
+        )
+
+    model = Seq2Seq(encoder, decoder)
+    model.load_state_dict(checkpoint["state_dict"])
+    model.eval()
+
+    return model, src_vocab, tgt_vocab
 
