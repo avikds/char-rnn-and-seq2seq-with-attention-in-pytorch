@@ -21,7 +21,7 @@ python scaffold.py
 - [x] **9.** encode_pairs
 - [x] **10.** Encoder
 - [x] **11.** Seq2Seq
-- [ ] **12.** train_translator
+- [x] **12.** train_translator
 - [ ] **13.** translate
 - [ ] **14.** LuongAttention
 - [ ] **15.** AttnDecoder

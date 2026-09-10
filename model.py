@@ -365,8 +365,85 @@ def masked_accuracy(logits, tgt_out):
 
     return correct[mask].float().mean().item()
 
-# Step 12 - train_translator (not yet solved)
-# TODO: implement
+# Step 12 - train_translator
+def train_translator(
+    model,
+    src,
+    tgt_in,
+    tgt_out,
+    val_frac=0.1,
+    epochs=5,
+    lr=0.005,
+    batch_size=64,
+    seed=42,
+):
+    torch.manual_seed(seed)
+
+    n = src.size(0)
+    val_size = int(n * val_frac)
+    train_size = n - val_size
+
+    # The last val_frac rows are reserved for validation.
+    src_train = src[:train_size]
+    tgt_in_train = tgt_in[:train_size]
+    tgt_out_train = tgt_out[:train_size]
+
+    src_val = src[train_size:]
+    tgt_in_val = tgt_in[train_size:]
+    tgt_out_val = tgt_out[train_size:]
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    history = {
+        "loss": [],
+        "val_acc": [],
+    }
+
+    model.train()
+
+    for _ in range(epochs):
+        perm = torch.randperm(train_size)
+        epoch_loss = 0.0
+        num_batches = 0
+
+        for start in range(0, train_size, batch_size):
+            idx = perm[start:start + batch_size]
+
+            src_batch = src_train[idx]
+            tgt_in_batch = tgt_in_train[idx]
+            tgt_out_batch = tgt_out_train[idx]
+
+            optimizer.zero_grad()
+
+            logits = model(src_batch, tgt_in_batch)
+            vocab_size = logits.size(-1)
+
+            loss = F.cross_entropy(
+                logits.reshape(-1, vocab_size),
+                tgt_out_batch.reshape(-1),
+                ignore_index=0,
+            )
+
+            loss.backward()
+            optimizer.step()
+
+            epoch_loss += loss.item()
+            num_batches += 1
+
+        history["loss"].append(epoch_loss / num_batches)
+
+        # Evaluate masked accuracy on the validation set.
+        model.eval()
+
+        with torch.no_grad():
+            val_logits = model(src_val, tgt_in_val)
+            val_acc = masked_accuracy(val_logits, tgt_out_val)
+
+        history["val_acc"].append(val_acc)
+
+        model.train()
+
+    return history
 
 # Step 13 - translate (not yet solved)
 # TODO: implement
