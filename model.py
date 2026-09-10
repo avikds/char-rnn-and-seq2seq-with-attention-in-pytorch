@@ -509,8 +509,55 @@ class LuongAttention(nn.Module):
 
         return context, weights
 
-# Step 15 - AttnDecoder (not yet solved)
-# TODO: implement
+# Step 15 - AttnDecoder
+class AttnDecoder(nn.Module):
+    def __init__(self, vocab_size, embed=64, hidden=128):
+        super().__init__()
+
+        self.embed = nn.Embedding(vocab_size, embed, padding_idx=0)
+        self.rnn = nn.GRU(embed, hidden, batch_first=True)
+        self.attention = LuongAttention()
+        self.head = nn.Linear(2 * hidden, vocab_size)
+
+    def forward(self, tgt_in, state, enc_outputs, src_mask):
+        logits = []
+        weights = []
+
+        # Process the target sequence one token at a time so attention
+        # is computed using the newly updated decoder hidden state.
+        for t in range(tgt_in.size(1)):
+            tok = tgt_in[:, t:t + 1]
+
+            # Embed the current target token and perform one GRU step.
+            embedded = self.embed(tok)
+            output, state = self.rnn(embedded, state)
+
+            # The GRU output is the current decoder hidden state.
+            hidden = output[:, 0, :]
+
+            # Attend over the encoder outputs using the new hidden state.
+            context, attn_weights = self.attention(
+                hidden,
+                enc_outputs,
+                src_mask,
+            )
+
+            # Combine decoder state and attention context.
+            combined = torch.cat([hidden, context], dim=1)
+
+            # Predict the next target token.
+            step_logits = self.head(combined)
+
+            logits.append(step_logits)
+            weights.append(attn_weights)
+
+        # Stack time steps:
+        # logits -> (B, T, vocab)
+        # weights -> (B, T, S)
+        logits = torch.stack(logits, dim=1)
+        self.last_weights = torch.stack(weights, dim=1)
+
+        return logits, state
 
 # Step 16 - attention_map (not yet solved)
 # TODO: implement
