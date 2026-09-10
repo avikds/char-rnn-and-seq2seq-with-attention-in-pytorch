@@ -332,8 +332,38 @@ class Decoder(nn.Module):
 
         return logits, state
 
-# Step 11 - Seq2Seq (not yet solved)
-# TODO: implement
+# Step 11 - Seq2Seq
+class Seq2Seq(nn.Module):
+    def __init__(self, encoder, decoder):
+        super().__init__()
+        self.encoder, self.decoder = encoder, decoder
+
+    def forward(self, src, tgt_in):
+        # Encode the source sequence.
+        enc_outputs, state = self.encoder(src)
+
+        # Teacher forcing: provide the full target-input sequence to the decoder.
+        # The source mask is supplied for compatibility with the attention decoder.
+        logits, _ = self.decoder(
+            tgt_in,
+            state,
+            enc_outputs,
+            src != 0
+        )
+
+        return logits
+
+def masked_accuracy(logits, tgt_out):
+    # Compare the predicted token IDs with the targets.
+    predictions = logits.argmax(dim=-1)
+
+    # Ignore padding positions.
+    mask = tgt_out != 0
+
+    # Return accuracy as a Python float.
+    correct = (predictions == tgt_out) & mask
+
+    return correct[mask].float().mean().item()
 
 # Step 12 - train_translator (not yet solved)
 # TODO: implement

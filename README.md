@@ -20,7 +20,7 @@ python scaffold.py
 - [x] **8.** WordVocab
 - [x] **9.** encode_pairs
 - [x] **10.** Encoder
-- [ ] **11.** Seq2Seq
+- [x] **11.** Seq2Seq
 - [ ] **12.** train_translator
 - [ ] **13.** translate
 - [ ] **14.** LuongAttention
