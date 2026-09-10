@@ -122,8 +122,42 @@ def train_char_rnn(model, X, Y, epochs=3, lr=0.005, batch_size=32, seed=42):
 
     return losses
 
-# Step 6 - generate (not yet solved)
-# TODO: implement
+# Step 6 - generate
+import torch
+
+def generate(model, vocab, prefix, n_chars, temperature=1.0, seed=0):
+    torch.manual_seed(seed)
+
+    model.eval()
+
+    with torch.no_grad():
+        # Encode and process the entire prefix first.
+        ids = vocab.encode(prefix)
+        x = torch.tensor([ids], dtype=torch.int64)
+
+        logits, state = model(x)
+
+        generated = []
+
+        # The last position's logits are used to predict the next character.
+        next_logits = logits[:, -1, :]
+
+        for _ in range(n_chars):
+            if temperature == 0:
+                next_id = torch.argmax(next_logits, dim=-1)
+            else:
+                scaled_logits = next_logits / temperature
+                probs = torch.softmax(scaled_logits, dim=-1)
+                next_id = torch.multinomial(probs, num_samples=1).squeeze(1)
+
+            generated.append(next_id.item())
+
+            # Feed the sampled character back into the GRU while carrying state.
+            next_input = next_id.unsqueeze(1)
+            logits, state = model(next_input, state)
+            next_logits = logits[:, -1, :]
+
+        return prefix + vocab.decode(generated)
 
 # Step 7 - load_spa_eng (not yet solved)
 # TODO: implement
