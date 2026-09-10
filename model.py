@@ -303,8 +303,35 @@ def encode_pairs(pairs, src_vocab, tgt_vocab, max_len=10):
         torch.tensor(tgt_out, dtype=torch.int64),
     )
 
-# Step 10 - Encoder (not yet solved)
-# TODO: implement
+# Step 10 - Encoder
+class Encoder(nn.Module):
+    def __init__(self, vocab_size, embed=64, hidden=128):
+        super().__init__()
+
+        self.embed = nn.Embedding(vocab_size, embed, padding_idx=0)
+        self.rnn = nn.GRU(embed, hidden, batch_first=True)
+
+    def forward(self, src):
+        x = self.embed(src)
+        outputs, state = self.rnn(x)
+
+        return outputs, state
+
+
+class Decoder(nn.Module):
+    def __init__(self, vocab_size, embed=64, hidden=128):
+        super().__init__()
+
+        self.embed = nn.Embedding(vocab_size, embed, padding_idx=0)
+        self.rnn = nn.GRU(embed, hidden, batch_first=True)
+        self.head = nn.Linear(hidden, vocab_size)
+
+    def forward(self, tgt_in, state, enc_outputs=None, src_mask=None):
+        x = self.embed(tgt_in)
+        x, state = self.rnn(x, state)
+        logits = self.head(x)
+
+        return logits, state
 
 # Step 11 - Seq2Seq (not yet solved)
 # TODO: implement
