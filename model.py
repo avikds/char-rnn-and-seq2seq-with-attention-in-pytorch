@@ -217,8 +217,69 @@ def load_spa_eng(n_pairs=20000, max_words=8, seed=42):
 
     return [pairs[i] for i in indices[:n_pairs]]
 
-# Step 8 - WordVocab (not yet solved)
-# TODO: implement
+# Step 8 - WordVocab
+from collections import Counter
+
+class WordVocab:
+    def __init__(self, sentences, max_size=1000):
+        # Special tokens occupy the first four indices.
+        self.itos = ["<pad>", "<unk>", "<sos>", "<eos>"]
+
+        # Count words across all sentences. Counter preserves first-occurrence
+        # order when frequencies are tied.
+        counter = Counter()
+        for sentence in sentences:
+            counter.update(sentence.split(" "))
+
+        # Fill the remaining vocabulary slots with the most frequent words.
+        remaining = max(0, max_size - len(self.itos))
+        self.itos.extend(
+            word
+            for word, _ in counter.most_common(remaining)
+            if word not in self.itos
+        )
+
+        self.stoi = {word: i for i, word in enumerate(self.itos)}
+
+    def __len__(self):
+        return len(self.itos)
+
+    def encode(self, sentence, max_len, sos=False, eos=False):
+        ids = []
+
+        if sos:
+            ids.append(self.stoi["<sos>"])
+
+        ids.extend(
+            self.stoi.get(word, self.stoi["<unk>"])
+            for word in sentence.split(" ")
+            if word
+        )
+
+        if eos:
+            ids.append(self.stoi["<eos>"])
+
+        # Truncate first, then right-pad to exactly max_len.
+        ids = ids[:max_len]
+        ids.extend([self.stoi["<pad>"]] * (max_len - len(ids)))
+
+        return ids
+
+    def decode(self, ids):
+        words = []
+
+        for idx in ids:
+            word = self.itos[idx]
+
+            if word == "<eos>":
+                break
+
+            if word in ("<pad>", "<sos>"):
+                continue
+
+            words.append(word)
+
+        return " ".join(words)
 
 # Step 9 - encode_pairs (not yet solved)
 # TODO: implement

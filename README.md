@@ -17,7 +17,7 @@ python scaffold.py
 - [x] **5.** train_char_rnn
 - [x] **6.** generate
 - [x] **7.** load_spa_eng
-- [ ] **8.** WordVocab
+- [x] **8.** WordVocab
 - [ ] **9.** encode_pairs
 - [ ] **10.** Encoder
 - [ ] **11.** Seq2Seq
