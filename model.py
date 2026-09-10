@@ -79,8 +79,48 @@ class CharRNN(nn.Module):
 
         return logits, state
 
-# Step 5 - train_char_rnn (not yet solved)
-# TODO: implement
+# Step 5 - train_char_rnn
+import torch
+import torch.nn.functional as F
+
+def train_char_rnn(model, X, Y, epochs=3, lr=0.005, batch_size=32, seed=42):
+    torch.manual_seed(seed)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    losses = []
+
+    model.train()
+
+    for _ in range(epochs):
+        perm = torch.randperm(X.size(0))
+        epoch_loss = 0.0
+        num_batches = 0
+
+        for start in range(0, X.size(0), batch_size):
+            idx = perm[start:start + batch_size]
+            xb = X[idx]
+            yb = Y[idx]
+
+            optimizer.zero_grad()
+
+            logits, _ = model(xb)
+
+            # Flatten (batch, T, vocab) -> (batch*T, vocab)
+            # and (batch, T) -> (batch*T).
+            loss = F.cross_entropy(
+                logits.reshape(-1, logits.size(-1)),
+                yb.reshape(-1)
+            )
+
+            loss.backward()
+            optimizer.step()
+
+            epoch_loss += loss.item()
+            num_batches += 1
+
+        losses.append(epoch_loss / num_batches)
+
+    return losses
 
 # Step 6 - generate (not yet solved)
 # TODO: implement
