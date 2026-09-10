@@ -491,8 +491,23 @@ def translate(model, sentence, src_vocab, tgt_vocab, max_len=10):
 
         return tgt_vocab.decode(generated)
 
-# Step 14 - LuongAttention (not yet solved)
-# TODO: implement
+# Step 14 - LuongAttention
+class LuongAttention(nn.Module):
+
+    def forward(self, query, keys, mask):
+        # Dot-product attention scores: (B, T).
+        scores = torch.bmm(keys, query.unsqueeze(2)).squeeze(2)
+
+        # Mask padding positions before softmax.
+        scores = scores.masked_fill(~mask, float("-inf"))
+
+        # Normalize scores into attention weights.
+        weights = torch.softmax(scores, dim=1)
+
+        # Weighted sum of encoder outputs: (B, hidden).
+        context = torch.bmm(weights.unsqueeze(1), keys).squeeze(1)
+
+        return context, weights
 
 # Step 15 - AttnDecoder (not yet solved)
 # TODO: implement
