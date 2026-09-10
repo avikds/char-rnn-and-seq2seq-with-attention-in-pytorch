@@ -317,7 +317,6 @@ class Encoder(nn.Module):
 
         return outputs, state
 
-
 class Decoder(nn.Module):
     def __init__(self, vocab_size, embed=64, hidden=128):
         super().__init__()
