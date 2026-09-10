@@ -13,7 +13,7 @@ python scaffold.py
 - [x] **1.** load_shakespeare
 - [x] **2.** CharVocab
 - [x] **3.** make_char_windows
-- [ ] **4.** CharRNN
+- [x] **4.** CharRNN
 - [ ] **5.** train_char_rnn
 - [ ] **6.** generate
 - [ ] **7.** load_spa_eng

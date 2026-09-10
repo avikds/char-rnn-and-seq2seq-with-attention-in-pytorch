@@ -56,8 +56,28 @@ def make_char_windows(ids, window, stride):
     # Return int64 tensors with shape (n, window).
     return torch.tensor(X, dtype=torch.int64), torch.tensor(Y, dtype=torch.int64)
 
-# Step 4 - CharRNN (not yet solved)
-# TODO: implement
+# Step 4 - CharRNN
+import torch.nn as nn
+
+class CharRNN(nn.Module):
+    def __init__(self, vocab_size, embed=16, hidden=128):
+        super().__init__()
+
+        self.embed = nn.Embedding(vocab_size, embed)
+        self.rnn = nn.GRU(embed, hidden, batch_first=True)
+        self.head = nn.Linear(hidden, vocab_size)
+
+    def forward(self, x, state=None):
+        # Convert character IDs to embeddings.
+        x = self.embed(x)
+
+        # Run the GRU, optionally continuing from the supplied state.
+        x, state = self.rnn(x, state)
+
+        # Project each hidden state to vocabulary logits.
+        logits = self.head(x)
+
+        return logits, state
 
 # Step 5 - train_char_rnn (not yet solved)
 # TODO: implement
